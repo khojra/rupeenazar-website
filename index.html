@@ -1,0 +1,790 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>RupeeNazar</title>
+<meta name="description" content="RupeeNazar notices your UPI, card and bank payments by itself and shows where your money goes. Everything stays on your phone.">
+<link rel="icon" href="logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap">
+<style>
+/* Layout: alternating bands. Dark hero with a live phone → moving payments strip → chai sum → scroll story →
+   feature carousel → numbers band → who it's for → privacy → FAQ → amber closing band. Always light page. */
+:root {
+  --navy: #0B2545;
+  --navy-2: #0F2238;
+  --navy-3: #13294A;
+  --teal: #16B7A0;
+  --teal-bright: #2DD4B7;
+  --teal-ink: #0B7A6E;
+  --mint: #E3F6F1;
+  --mint-text: #6FE3CD;
+  --amber: #F5B82E;
+  --amber-deep: #E09A0B;
+  --bg: #F2FAF9;
+  --surface: #FFFFFF;
+  --line: #DCE7EA;
+  --fg: #0B2545;
+  --muted: #4F5E70;
+  --on-dark: #EAF1F8;
+  --on-dark-muted: #A9B8C8;
+  --amber-soft: #FFF4D8;
+  --amber-ink: #7A5300;
+  --teal-soft: #D5F3EE;
+  --scr: #F7FBFA;
+  --track: #E3EEF0;
+  --display: "Sora", "Segoe UI", system-ui, sans-serif;
+  --body: "Manrope", "Segoe UI", system-ui, sans-serif;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 16px; line-height: 1.6; overflow-x: hidden; }
+h1, h2, h3 { font-family: var(--display); line-height: 1.08; text-wrap: balance; margin: 0; letter-spacing: -.02em; }
+p { margin: 0; }
+a { color: var(--teal-ink); }
+a:focus-visible, button:focus-visible, input:focus-visible, summary:focus-visible { outline: 3px solid var(--amber); outline-offset: 3px; border-radius: 8px; }
+.wrap { max-width: 1160px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.eyebrow { font-size: 12.5px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--teal-ink); }
+.num { font-variant-numeric: tabular-nums; }
+.btn { display: inline-flex; align-items: center; gap: 10px; border-radius: 14px; padding: 13px 20px; font-weight: 800; text-decoration: none; border: 0; cursor: pointer; font: inherit; font-weight: 800; }
+
+/* ---------- Top bar (sticky) ---------- */
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: rgba(255, 255, 255, .92); }
+.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: rgba(255, 255, 255, .92); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
+.top .wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-block: 12px; }
+.brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--navy); font-family: var(--display); font-weight: 700; font-size: 19px; }
+.brand img { width: 34px; height: 34px; border-radius: 10px; }
+.top nav { display: flex; align-items: center; gap: 22px; font-weight: 700; font-size: 14.5px; }
+.top nav a { color: var(--muted); text-decoration: none; }
+.top nav a:hover { color: var(--navy); }
+.top nav .btn { background: var(--navy); color: #FFFFFF; padding: 8px 14px; border-radius: 10px; font-size: 14px; }
+
+/* ---------- Hero ---------- */
+.hero { background: linear-gradient(180deg, #FFFFFF 0%, var(--bg) 100%); color: var(--fg); position: relative; overflow: hidden; }
+.hero::before, .hero::after { content: ""; position: absolute; border-radius: 50%; pointer-events: none; filter: blur(8px); }
+.hero::before { width: 640px; height: 640px; right: -160px; top: -200px; background: radial-gradient(circle, rgba(22, 183, 160, .20), rgba(22, 183, 160, 0) 65%); }
+.hero::after { width: 420px; height: 420px; left: -160px; bottom: -200px; background: radial-gradient(circle, rgba(245, 184, 46, .22), rgba(245, 184, 46, 0) 65%); }
+.hero .wrap { position: relative; display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr); gap: 48px; align-items: center; padding-block: 56px 72px; }
+.hero .eyebrow { color: var(--teal-ink); }
+.hero h1 { font-size: clamp(42px, 7vw, 82px); font-weight: 800; text-transform: none; margin-top: 14px; color: var(--navy); }
+.rotator { display: inline-block; position: relative; color: var(--teal-ink); isolation: isolate; }
+.rotator::after { content: ""; position: absolute; left: 0; right: 0; bottom: .06em; height: .16em; background: var(--amber); border-radius: 4px; z-index: -1; opacity: .8; }
+.rotator span { display: inline-block; animation: wordIn .5s cubic-bezier(.2, .8, .2, 1) both; }
+@keyframes wordIn { from { transform: translateY(30%); opacity: .2; } to { transform: none; opacity: 1; } }
+.hero .lede { font-size: 19px; color: var(--muted); max-width: 32em; margin-top: 22px; }
+.hero .cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 30px; align-items: center; }
+.soon { background: var(--navy); color: #FFFFFF; }
+.soon small { display: block; font-weight: 600; font-size: 12px; line-height: 1.2; color: var(--mint-text); }
+.soon svg { width: 24px; height: 24px; }
+.ghost { background: var(--surface); color: var(--navy); border: 1.5px solid var(--line); }
+.ghost:hover { border-color: var(--teal); }
+.facts { display: flex; flex-wrap: wrap; gap: 10px 22px; margin-top: 28px; font-size: 14px; color: var(--muted); font-weight: 600; }
+.facts span { display: inline-flex; align-items: center; gap: 8px; }
+.facts i { width: 8px; height: 8px; border-radius: 50%; background: var(--teal); }
+
+/* Live phone */
+.phone-wrap { justify-self: center; position: relative; width: min(330px, 100%); }
+.phone { background: var(--navy); border-radius: 44px; padding: 10px; box-shadow: 0 40px 80px -36px rgba(11, 37, 69, .45); }
+.screen { background: var(--scr); border-radius: 36px; padding: 16px 14px 18px; display: flex; flex-direction: column; gap: 10px; min-height: 560px; }
+.screen .bar { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); padding: 0 6px; font-weight: 600; }
+.tile { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 14px; }
+.tile .k { font-size: 12px; color: var(--muted); font-weight: 600; }
+.tile .v { font-family: var(--display); font-size: 32px; font-weight: 700; color: var(--navy); }
+.meter { height: 8px; border-radius: 4px; background: var(--track); margin-top: 10px; overflow: hidden; }
+.meter i { display: block; height: 100%; width: 58%; background: var(--teal); border-radius: 4px; transition: width .8s cubic-bezier(.2, .8, .2, 1); }
+.tile .sub { font-size: 12px; color: var(--muted); margin-top: 6px; }
+.chai { background: var(--amber-soft); border: 1px solid #F5DFA0; border-radius: 18px; padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; color: var(--navy); }
+.chai b { color: var(--amber-ink); font-size: 12.5px; letter-spacing: .06em; }
+.chai .v { font-family: var(--display); font-size: 22px; font-weight: 700; }
+.feed { display: flex; flex-direction: column; gap: 8px; }
+.feed-h { font-size: 12px; color: var(--muted); font-weight: 600; padding: 2px 4px 0; display: flex; justify-content: space-between; }
+.item { display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; gap: 10px; align-items: center; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 9px 10px; color: var(--navy); font-size: 13px; font-weight: 700; }
+.item.new { animation: itemIn .6s cubic-bezier(.2, .8, .2, 1) both; box-shadow: 0 0 0 1.5px var(--teal); }
+@keyframes itemIn { from { transform: translateY(-14px) scale(.97); opacity: .25; } to { transform: none; opacity: 1; } }
+.item .ic { width: 32px; height: 32px; border-radius: 10px; display: grid; place-items: center; font-weight: 800; font-size: 12px; }
+.item small { display: block; color: var(--muted); font-size: 11.5px; font-weight: 500; }
+.item .amt { font-weight: 800; font-variant-numeric: tabular-nums; }
+.badge-float { position: absolute; left: -34px; top: 262px; background: #FFFFFF; color: var(--navy); border-radius: 14px; padding: 10px 12px; font-size: 12.5px; font-weight: 800;
+  box-shadow: 0 18px 40px -18px rgba(0, 0, 0, .5); display: flex; align-items: center; gap: 8px; animation: bob 4s ease-in-out infinite; z-index: 2; }
+.badge-float { border: 1px solid var(--line); }
+.badge-float i { width: 22px; height: 22px; border-radius: 7px; background: var(--mint); display: grid; place-items: center; color: var(--teal-ink); font-style: normal; }
+.badge-float.b2 { left: auto; right: -30px; top: 470px; animation-delay: -2s; }
+@keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+.example { text-align: center; font-size: 12.5px; color: var(--muted); margin-top: 12px; }
+
+/* ---------- Moving strip ---------- */
+.strip { background: var(--mint); color: var(--navy); overflow: hidden; border-block: 1px solid #C9EDE4; }
+.strip-track { display: flex; gap: 14px; width: max-content; padding-block: 14px; animation: slide 38s linear infinite; }
+.strip:hover .strip-track { animation-play-state: paused; }
+@keyframes slide { to { transform: translateX(-50%); } }
+.chip { display: inline-flex; align-items: center; gap: 10px; background: var(--surface); border: 1px solid #C9EDE4; border-radius: 999px; padding: 8px 14px; font-weight: 700; font-size: 14px; white-space: nowrap; }
+.chip s { text-decoration: none; color: var(--muted); font-weight: 600; font-family: ui-monospace, Menlo, monospace; font-size: 12.5px; }
+.chip svg { width: 14px; height: 14px; color: var(--teal-ink); }
+
+/* ---------- Chai sum ---------- */
+.sum .wrap { padding-block: 84px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 48px; align-items: center; }
+.sum h2 { font-size: clamp(32px, 5vw, 54px); font-weight: 800; }
+.sum h2 em { font-style: normal; color: var(--teal-ink); }
+.sum p { color: var(--muted); margin-top: 16px; max-width: 30em; font-size: 17px; }
+.calc { background: var(--surface); color: var(--fg); border: 1px solid var(--line); box-shadow: 0 30px 60px -44px rgba(11, 37, 69, .45); border-radius: 28px; padding: 28px; display: grid; grid-template-columns: minmax(0, 1fr) 120px; gap: 20px; align-items: end; position: relative; overflow: hidden; }
+.calc .inputs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; grid-column: 1 / -1; }
+.calc label { font-size: 13px; color: var(--muted); font-weight: 700; display: flex; flex-direction: column; gap: 6px; }
+.calc input { font: inherit; font-size: 22px; font-weight: 800; color: var(--navy); background: var(--bg); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; width: 100%; font-variant-numeric: tabular-nums; }
+.calc .out .k { font-size: 13px; color: var(--muted); font-weight: 700; }
+.calc .out .v { font-family: var(--display); font-size: clamp(40px, 6vw, 60px); font-weight: 800; color: var(--teal-ink); line-height: 1.05; }
+.calc .out .m { font-size: 14px; color: var(--muted); margin-top: 4px; }
+.cup { width: 120px; height: 130px; justify-self: end; }
+.cup .tea { transition: transform 1s cubic-bezier(.2, .8, .2, 1); transform-origin: bottom; }
+.steam path { animation: steam 3s ease-in-out infinite; stroke-dasharray: 4 6; }
+.steam path:nth-child(2) { animation-delay: -1s; }
+.steam path:nth-child(3) { animation-delay: -2s; }
+@keyframes steam { 0% { opacity: .1; transform: translateY(6px); } 50% { opacity: .9; } 100% { opacity: .1; transform: translateY(-6px); } }
+
+/* ---------- Scroll story ---------- */
+.story { background: var(--surface); border-block: 1px solid var(--line); }
+.story .wrap { padding-block: 84px; }
+.story-head { max-width: 42em; display: flex; flex-direction: column; gap: 12px; margin-bottom: 40px; }
+.story-head h2, .sec-head h2 { font-size: clamp(32px, 5vw, 54px); font-weight: 800; }
+.story-head p, .sec-head p { color: var(--muted); font-size: 17px; }
+.story-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 56px; }
+.steps { display: flex; flex-direction: column; gap: 20px; }
+.step { min-height: 46vh; display: flex; flex-direction: column; justify-content: center; gap: 10px; padding: 24px; border-radius: 24px; border: 1px solid var(--line); background: var(--bg); transition: background .4s, border-color .4s, transform .4s; }
+.step.on { background: var(--mint); border-color: #B8E6DB; }
+.step .n { font-family: var(--display); font-weight: 800; font-size: 14px; color: var(--teal-ink); letter-spacing: .1em; }
+.step h3 { font-size: clamp(22px, 3vw, 30px); }
+.step p { color: var(--muted); }
+.step .inline { display: none; }
+.stage { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 96px); align-self: start; }
+.stage .screen { min-height: 420px; justify-content: center; gap: 14px; }
+.panel { display: none; flex-direction: column; gap: 12px; animation: itemIn .5s cubic-bezier(.2, .8, .2, 1) both; }
+.panel.on { display: flex; }
+.sms { background: var(--surface); border: 1px solid var(--line); color: #1F2D3D; border-radius: 18px 18px 18px 4px; padding: 14px; font-size: 14px; line-height: 1.5; }
+.sms small { display: block; color: #6B7A8C; font-size: 11.5px; margin-bottom: 4px; font-weight: 700; }
+.sms mark { background: #FFE7A3; border-radius: 4px; padding: 0 3px; color: #1F2D3D; }
+.parsed { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.parsed div { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 10px; color: var(--navy); font-weight: 800; }
+.parsed div small { display: block; font-weight: 600; color: var(--muted); font-size: 11px; }
+.ignored { font-size: 12px; color: var(--muted); display: flex; gap: 8px; align-items: center; }
+.cats { display: flex; flex-direction: column; gap: 8px; }
+.cat { display: grid; grid-template-columns: 1fr auto; gap: 6px; color: var(--navy); font-size: 13px; font-weight: 700; }
+.cat .bar2 { grid-column: 1 / -1; height: 8px; background: var(--track); border-radius: 4px; overflow: hidden; }
+.cat .bar2 i { display: block; height: 100%; border-radius: 4px; background: var(--teal); animation: grow 1s cubic-bezier(.2, .8, .2, 1) both; }
+@keyframes grow { from { width: 0; } }
+
+/* ---------- Feature carousel ---------- */
+.feats .wrap { padding-block: 84px; }
+.sec-head { display: flex; justify-content: space-between; align-items: end; gap: 24px; flex-wrap: wrap; margin-bottom: 32px; }
+.sec-head > div { max-width: 40em; display: flex; flex-direction: column; gap: 12px; }
+.arrows { display: flex; gap: 10px; }
+.arrows button { width: 48px; height: 48px; border-radius: 50%; border: 1.5px solid var(--line); background: var(--surface); color: var(--fg); cursor: pointer; display: grid; place-items: center; }
+.arrows button:hover { border-color: var(--teal); }
+.arrows svg { width: 20px; height: 20px; }
+.rail { display: grid; grid-auto-flow: column; grid-auto-columns: min(320px, 82%); gap: 18px; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 14px; scrollbar-width: thin; }
+.card { scroll-snap-align: start; border-radius: 26px; padding: 26px; display: flex; flex-direction: column; gap: 12px; min-height: 330px; position: relative; overflow: hidden; transition: transform .3s; }
+.card:hover { transform: translateY(-4px); }
+.card h3 { font-size: 23px; }
+.card p { font-size: 15px; }
+.card .ico { width: 64px; height: 64px; border-radius: 18px; display: grid; place-items: center; margin-bottom: 8px; }
+.card .ico svg { width: 34px; height: 34px; }
+.card .tag { margin-top: auto; font-size: 13px; font-weight: 800; }
+.c-navy { background: var(--teal-soft); color: var(--navy); } .c-navy p { color: var(--muted); } .c-navy .ico { background: var(--surface); color: var(--teal-ink); } .c-navy .tag { color: var(--teal-ink); }
+.c-teal { background: var(--mint); color: var(--navy); } .c-teal p { color: var(--muted); } .c-teal .ico { background: var(--teal); color: #FFFFFF; } .c-teal .tag { color: var(--teal-ink); }
+.c-amber { background: var(--amber-soft); color: var(--navy); } .c-amber p { color: #5C4A1E; } .c-amber .ico { background: var(--amber); color: var(--navy); } .c-amber .tag { color: var(--amber-ink); }
+.c-mint { background: var(--mint); color: var(--navy); } .c-mint p { color: var(--muted); } .c-mint .ico { background: var(--surface); color: var(--teal-ink); } .c-mint .tag { color: var(--teal-ink); }
+.c-white { background: var(--surface); color: var(--navy); border: 1px solid var(--line); } .c-white p { color: var(--muted); } .c-white .ico { background: var(--mint); color: var(--teal-ink); } .c-white .tag { color: var(--teal-ink); }
+/* animated icon details */
+.wave i { display: inline-block; width: 4px; border-radius: 2px; background: currentColor; margin: 0 1.5px; animation: wave 1.1s ease-in-out infinite; }
+.wave i:nth-child(1) { height: 10px; animation-delay: -.9s; } .wave i:nth-child(2) { height: 22px; animation-delay: -.6s; } .wave i:nth-child(3) { height: 30px; animation-delay: -.3s; } .wave i:nth-child(4) { height: 18px; } .wave i:nth-child(5) { height: 12px; animation-delay: -.45s; }
+@keyframes wave { 0%, 100% { transform: scaleY(.4); } 50% { transform: scaleY(1); } }
+.spin-slow { animation: spin 9s linear infinite; transform-origin: center; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.pulse { animation: pulse 2s ease-in-out infinite; transform-origin: center; }
+@keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.12); } }
+
+/* ---------- Numbers band ---------- */
+.numbers { background: var(--bg); color: var(--fg); }
+.numbers .wrap { padding-block: 20px 72px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px; }
+.stat { background: var(--surface); border: 1px solid var(--line); border-radius: 24px; padding: 24px; }
+.stat .v { font-family: var(--display); font-weight: 800; font-size: clamp(44px, 7vw, 68px); line-height: 1; color: var(--navy); }
+.stat .v small { font-size: .45em; color: var(--teal-ink); margin-left: 4px; }
+.stat p { color: var(--muted); margin-top: 10px; font-size: 15px; max-width: 16em; }
+.stat:nth-child(1) .v, .stat:nth-child(2) .v { color: var(--teal-ink); }
+
+/* ---------- Who it's for ---------- */
+.who .wrap { padding-block: 84px; }
+.people { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; }
+.person { background: var(--surface); border: 1px solid var(--line); border-radius: 24px; padding: 22px; display: flex; flex-direction: column; gap: 12px; }
+.avatar { width: 56px; height: 56px; border-radius: 18px; display: grid; place-items: center; font-family: var(--display); font-weight: 800; font-size: 20px; }
+.person h3 { font-size: 19px; }
+.person p { color: var(--muted); font-size: 15px; }
+.person .q { font-weight: 700; color: var(--fg); font-size: 15px; border-top: 1px dashed var(--line); padding-top: 12px; margin-top: auto; }
+.note-ex { color: var(--muted); font-size: 13px; margin-top: 14px; }
+
+/* ---------- Privacy ---------- */
+.priv { background: var(--mint); }
+.priv .wrap { padding-block: 84px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 48px; align-items: center; }
+.priv h2 { font-size: clamp(32px, 5vw, 54px); font-weight: 800; }
+.priv p { color: var(--muted); margin-top: 16px; font-size: 17px; }
+.shield { width: 84px; height: 84px; border-radius: 26px; background: var(--surface); display: grid; place-items: center; margin-bottom: 18px; color: var(--teal-ink); box-shadow: 0 20px 40px -30px rgba(11, 37, 69, .5); }
+.shield svg { width: 42px; height: 42px; }
+.perm { background: var(--surface); border-radius: 24px; padding: 8px 22px; box-shadow: 0 30px 60px -40px rgba(11, 37, 69, .45); }
+.perm > div { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 14px; padding-block: 16px; border-bottom: 1px solid var(--line); align-items: start; }
+.perm > div:last-child { border-bottom: 0; }
+.perm b { display: block; font-size: 15.5px; }
+.perm span { font-size: 14px; color: var(--muted); }
+.perm em { font-style: normal; font-size: 12.5px; font-weight: 800; border-radius: 999px; padding: 4px 11px; white-space: nowrap; }
+.perm .yes { background: var(--mint); color: var(--teal-ink); }
+.perm .no { background: var(--amber); color: var(--navy); }
+
+/* ---------- FAQ ---------- */
+.faq-sec .wrap { padding-block: 84px; display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); gap: 48px; align-items: start; }
+.faq-sec h2 { font-size: clamp(32px, 5vw, 54px); font-weight: 800; }
+.faq { display: flex; flex-direction: column; gap: 10px; }
+details { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 18px 22px; transition: border-color .3s; }
+details[open] { border-color: var(--teal); }
+summary { cursor: pointer; font-weight: 800; font-size: 16.5px; list-style: none; display: flex; justify-content: space-between; gap: 12px; align-items: center; }
+summary::-webkit-details-marker { display: none; }
+summary::after { content: ""; flex: none; width: 28px; height: 28px; border-radius: 50%; background: var(--mint) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230B7A6E' stroke-width='2.4' stroke-linecap='round'%3E%3Cpath d='M12 6v12M6 12h12'/%3E%3C/svg%3E") center / 16px no-repeat; transition: transform .3s; }
+details[open] summary::after { transform: rotate(45deg); }
+details p { color: var(--muted); margin-top: 10px; font-size: 15.5px; }
+
+/* ---------- Closing band ---------- */
+.closing { background: var(--amber-soft); color: var(--navy); position: relative; overflow: hidden; }
+.closing::after { content: "₹"; position: absolute; right: -40px; bottom: -120px; font-family: var(--display); font-weight: 800; font-size: 420px; line-height: 1; color: rgba(245, 184, 46, .25); pointer-events: none; }
+.closing .wrap { position: relative; padding-block: 76px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 28px; }
+.closing h2 { font-size: clamp(32px, 5vw, 56px); font-weight: 800; max-width: 14em; }
+.closing p { margin-top: 12px; font-size: 17px; color: #5C4A1E; max-width: 34em; }
+.mail { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 10px; background: var(--navy); color: #FFFFFF; border-radius: 16px; padding: 14px 16px 14px 20px; font-weight: 800; font-size: 16px; }
+.mail button { font: inherit; font-size: 13px; font-weight: 800; border: 0; background: var(--amber); color: var(--navy); border-radius: 10px; padding: 7px 12px; cursor: pointer; }
+
+footer { background: var(--surface); color: var(--muted); border-top: 1px solid var(--line); }
+footer .wrap { padding-block: 36px 44px; display: flex; flex-wrap: wrap; gap: 24px; justify-content: space-between; align-items: center; font-size: 14px; }
+footer nav { display: flex; flex-wrap: wrap; gap: 20px; font-weight: 700; }
+footer a { color: var(--navy); text-decoration: none; }
+footer a:hover { color: var(--teal-ink); }
+
+/* Rise in as sections arrive (they start visible; this only adds a gentle lift) */
+.rise.seen { animation: rise .7s cubic-bezier(.2, .8, .2, 1) both; }
+@keyframes rise { from { transform: translateY(26px); opacity: .35; } to { transform: none; opacity: 1; } }
+
+@media (max-width: 900px) {
+  .hero .wrap, .sum .wrap, .priv .wrap, .faq-sec .wrap { grid-template-columns: minmax(0, 1fr); }
+  .story-grid { grid-template-columns: minmax(0, 1fr); }
+  .stage { display: none; }
+  .step { min-height: 0; }
+  .step .inline { display: flex; flex-direction: column; gap: 10px; background: var(--scr); border: 1px solid var(--line); border-radius: 20px; padding: 14px; margin-top: 8px; }
+  .numbers .wrap { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .people { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .top nav a.hide-sm { display: none; }
+  .badge-float { left: -8px; } .badge-float.b2 { right: -8px; }
+}
+@media (max-width: 560px) {
+  .people { grid-template-columns: minmax(0, 1fr); }
+  .calc { grid-template-columns: minmax(0, 1fr); }
+  .cup { display: none; }
+  .hero .wrap { padding-block: 36px 56px; }
+  .sum .wrap, .story .wrap, .feats .wrap, .who .wrap, .priv .wrap, .faq-sec .wrap { padding-block: 60px; }
+  .badge-float { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  .strip-track { flex-wrap: wrap; width: auto; }
+  html { scroll-behavior: auto; }
+}
+</style>
+
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#top" aria-label="RupeeNazar home"><img src="logo.png" alt="">RupeeNazar</a>
+    <nav aria-label="Main">
+      <a class="hide-sm" href="#how">How it works</a>
+      <a class="hide-sm" href="#features">Features</a>
+      <a class="hide-sm" href="#privacy">Privacy</a>
+      <a class="btn" href="#soon">Get notified</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+  <!-- ===== Hero ===== -->
+  <section class="hero">
+    <div class="wrap">
+      <div>
+        <p class="eyebrow">Money, in plain sight</p>
+        <h1>See where your <span class="rotator" id="rot"><span>chai</span></span> money goes.</h1>
+        <p class="lede">RupeeNazar notices your UPI, card and bank payments by itself, sorts them, and shows you the small spends that quietly add up. Nothing to type. Nothing leaves your phone.</p>
+        <div class="cta">
+          <a class="btn soon" href="#soon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" aria-hidden="true"><path d="M5 3.5v17l9.5-8.5L5 3.5Z"/><path d="M14.5 12l3.4-3.1 2.6 1.5c1 .6 1 2.6 0 3.2l-2.6 1.5-3.4-3.1Z"/></svg>
+            <span>Coming soon<small>on Google Play</small></span>
+          </a>
+          <a class="btn ghost" href="#how">See how it works</a>
+        </div>
+        <div class="facts">
+          <span><i aria-hidden="true"></i>No internet permission</span>
+          <span><i aria-hidden="true"></i>English, Hindi, Telugu</span>
+          <span><i aria-hidden="true"></i>Made in Hyderabad</span>
+        </div>
+      </div>
+
+      <div class="phone-wrap">
+        <div class="badge-float" aria-hidden="true"><i><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M5 12l5 5 9-10"/></svg></i>Sorted by itself</div>
+        <div class="badge-float b2" aria-hidden="true"><i><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></i>Stays on your phone</div>
+        <div class="phone" role="img" aria-label="Example RupeeNazar home screen, with payments arriving and the month's total going up">
+          <div class="screen">
+            <div class="bar"><span>9:41</span><span>RupeeNazar</span></div>
+            <div class="tile">
+              <div class="k">Spent this month</div>
+              <div class="v num" id="spent">₹18,240</div>
+              <div class="meter"><i id="meter"></i></div>
+              <div class="sub num" id="limit">58% of your ₹31,500 limit · 19 days left</div>
+            </div>
+            <div class="chai">
+              <div><b>CHAI-PANI</b><div style="font-size:12px;color:var(--muted)" id="chai-visits">6 visits this month</div></div>
+              <div class="v num" id="chai">₹323</div>
+            </div>
+            <div class="feed-h"><span>Just now</span><span>Added by itself</span></div>
+            <div class="feed" id="feed">
+              <div class="item"><div class="ic" style="background:#E3F6F1;color:#0B7A6E">B</div><div>Biryani House<small>Food &amp; Dining · Credit card</small></div><div class="amt">₹450</div></div>
+              <div class="item"><div class="ic" style="background:#E6ECF4;color:#0B2545">K</div><div>Kirana store<small>Groceries · UPI</small></div><div class="amt">₹342</div></div>
+              <div class="item"><div class="ic" style="background:#FFF4D8;color:#7A5300">A</div><div>Auto<small>Travel · Cash, by voice</small></div><div class="amt">₹60</div></div>
+            </div>
+          </div>
+        </div>
+        <p class="example">Example screen with sample amounts</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Moving strip ===== -->
+  <div class="strip" aria-label="Examples of payments being sorted">
+    <div class="strip-track" id="strip"></div>
+  </div>
+
+  <!-- ===== Chai sum ===== -->
+  <section class="sum" aria-labelledby="sum-h">
+    <div class="wrap">
+      <div class="rise">
+        <p class="eyebrow">The small spends</p>
+        <h2 id="sum-h" style="margin-top:12px">A ₹20 chai is nothing. <em>Twice a day</em> is ₹14,600 a year.</h2>
+        <p>Chai, snacks, autos and top-ups slip past because no single one looks big. RupeeNazar adds them up and shows you the total, every day. Try your own habit.</p>
+      </div>
+      <form class="calc rise" id="calc" aria-label="Small spends calculator">
+        <div class="inputs">
+          <label for="amt">Each time (₹)<input id="amt" type="number" inputmode="numeric" min="1" max="100000" value="20"></label>
+          <label for="times">Times a day<input id="times" type="number" inputmode="decimal" min="0.5" max="50" step="0.5" value="2"></label>
+        </div>
+        <div class="out" aria-live="polite">
+          <div class="k">In a year, that's</div>
+          <div class="v num" id="year">₹14,600</div>
+          <div class="m num" id="month">About ₹1,200 a month</div>
+        </div>
+        <svg class="cup" viewBox="0 0 120 130" aria-hidden="true">
+          <g class="steam" fill="none" stroke="#16B7A0" stroke-width="3" stroke-linecap="round">
+            <path d="M40 30c-6-8 6-12 0-20"/><path d="M58 30c-6-8 6-12 0-20"/><path d="M76 30c-6-8 6-12 0-20"/>
+          </g>
+          <defs><clipPath id="cupClip"><path d="M22 44h76l-8 70a10 10 0 0 1-10 9H40a10 10 0 0 1-10-9Z"/></clipPath></defs>
+          <g clip-path="url(#cupClip)">
+            <rect x="0" y="44" width="120" height="80" fill="#E3F6F1"/>
+            <rect class="tea" id="tea" x="0" y="44" width="120" height="80" fill="#F5B82E"/>
+          </g>
+          <path d="M22 44h76l-8 70a10 10 0 0 1-10 9H40a10 10 0 0 1-10-9Z" fill="none" stroke="#0B2545" stroke-width="3"/>
+          <path d="M97 58h6a10 10 0 0 1 0 20h-9" fill="none" stroke="#0B2545" stroke-width="3"/>
+        </svg>
+      </form>
+    </div>
+  </section>
+
+  <!-- ===== Scroll story ===== -->
+  <section class="story" id="how" aria-labelledby="how-h">
+    <div class="wrap">
+      <div class="story-head rise">
+        <p class="eyebrow">How it works</p>
+        <h2 id="how-h">Your bank already tells your phone. RupeeNazar listens.</h2>
+        <p>Every UPI, card or bank payment sends you a message. With your permission, RupeeNazar reads just the payment details from it, right on the phone.</p>
+      </div>
+      <div class="story-grid">
+        <div class="steps">
+          <div class="step on" data-step="0">
+            <span class="n">STEP 1</span>
+            <h3>A payment message arrives</h3>
+            <p>From your bank or payment app, as it always does. You don't change a thing.</p>
+            <div class="inline" aria-hidden="true">
+              <div class="sms"><small>AX-YOURBK · now</small>Rs.450.00 debited from A/c XX1234 to VPA biryanihouse@upi on 11-11-26. UPI Ref 631245…</div>
+            </div>
+          </div>
+          <div class="step" data-step="1">
+            <span class="n">STEP 2</span>
+            <h3>The details are picked out</h3>
+            <p>Amount, who you paid, card or UPI, and the date. OTPs and every other message are ignored.</p>
+            <div class="inline" aria-hidden="true">
+              <div class="parsed"><div><small>Amount</small>₹450</div><div><small>Paid to</small>Biryani House</div><div><small>How</small>UPI</div><div><small>When</small>11 Nov</div></div>
+            </div>
+          </div>
+          <div class="step" data-step="2">
+            <span class="n">STEP 3</span>
+            <h3>It lands in the right place</h3>
+            <p>Sorted into Food &amp; Dining, counted once. Change it once and RupeeNazar remembers that shop next time.</p>
+            <div class="inline" aria-hidden="true">
+              <div class="cats">
+                <div class="cat"><span>Food &amp; Dining</span><span>₹2,840</span><div class="bar2"><i style="width:72%"></i></div></div>
+                <div class="cat"><span>Chai-Pani</span><span>₹323</span><div class="bar2"><i style="width:18%;background:#E09A0B"></i></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="stage" aria-hidden="true">
+          <div class="phone"><div class="screen">
+            <div class="panel on" data-panel="0">
+              <div class="sms"><small>AX-YOURBK · now</small>Rs.<mark>450.00</mark> debited from A/c XX1234 to VPA <mark>biryanihouse</mark>@upi on <mark>11-11-26</mark>. <mark>UPI</mark> Ref 631245…</div>
+              <div class="sms" style="opacity:.5"><small>VM-YOURBK · 2 min ago</small>123456 is your OTP for login. Do not share it with anyone.</div>
+            </div>
+            <div class="panel" data-panel="1">
+              <div class="parsed"><div><small>Amount</small>₹450</div><div><small>Paid to</small>Biryani House</div><div><small>How</small>UPI</div><div><small>When</small>11 Nov, 1:24 pm</div></div>
+              <div class="ignored"><span style="color:#E09A0B">●</span>OTP message ignored, never saved</div>
+            </div>
+            <div class="panel" data-panel="2">
+              <div class="tile"><div class="k">Food &amp; Dining this month</div><div class="v num">₹2,840</div></div>
+              <div class="cats">
+                <div class="cat"><span>Food &amp; Dining</span><span>₹2,840</span><div class="bar2"><i style="width:72%"></i></div></div>
+                <div class="cat"><span>Travel</span><span>₹1,960</span><div class="bar2"><i style="width:50%;background:#0B2545"></i></div></div>
+                <div class="cat"><span>Chai-Pani</span><span>₹323</span><div class="bar2"><i style="width:18%;background:#E09A0B"></i></div></div>
+              </div>
+            </div>
+          </div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Feature carousel ===== -->
+  <section class="feats" id="features" aria-labelledby="feat-h">
+    <div class="wrap">
+      <div class="sec-head rise">
+        <div>
+          <p class="eyebrow">What you get</p>
+          <h2 id="feat-h">Made for how India pays</h2>
+        </div>
+        <div class="arrows">
+          <button type="button" id="prev" aria-label="Previous features"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+          <button type="button" id="next" aria-label="Next features"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
+        </div>
+      </div>
+      <div class="rail" id="rail" tabindex="0" aria-label="Features, swipe for more">
+        <article class="card c-navy">
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M5 9h14M5 14h9"/><circle class="pulse" cx="18" cy="15" r="3" fill="currentColor"/></svg></div>
+          <h3>Payments add themselves</h3>
+          <p>UPI apps, cards and bank SMS alerts. Card spends, refunds, ATM cash and card-bill payments are each counted the right way, never twice.</p>
+          <span class="tag">Automatic</span>
+        </article>
+        <article class="card c-amber">
+          <div class="ico"><span class="wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span></div>
+          <h3>Cash, just by saying it</h3>
+          <p>"Chai 20, auto 60, kirana 340." Say several at once in English, Hindi or Telugu. Each one is written down and sorted.</p>
+          <span class="tag">Voice entry</span>
+        </article>
+        <article class="card c-teal">
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path class="spin-slow" d="M12 12V6"/><path d="M12 12h4"/></svg></div>
+          <h3>Limits that keep pace</h3>
+          <p>A monthly limit per category, tracked day by day. What's left at month end can go straight to savings.</p>
+          <span class="tag">Limits</span>
+        </article>
+        <article class="card c-mint">
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="8" cy="9" r="3"/><circle cx="16" cy="9" r="3"/><path d="M3 19c.8-3 2.8-4.5 5-4.5s4.2 1.5 5 4.5M11 19c.8-3 2.8-4.5 5-4.5s4.2 1.5 5 4.5"/></svg></div>
+          <h3>Settle Up with friends</h3>
+          <p>Split a bill, track who owes whom, get a gentle reminder on the due date. Only your share counts as your spending.</p>
+          <span class="tag">Settle Up</span>
+        </article>
+        <article class="card c-white">
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></div>
+          <h3>Your month as a story</h3>
+          <p>On the 1st, a short read on where the money went and what changed. And a heads-up the day before a subscription or EMI is due.</p>
+          <span class="tag">Stories &amp; reminders</span>
+        </article>
+        <article class="card c-navy">
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5"/></svg></div>
+          <h3>Find anything in seconds</h3>
+          <p>Search by name, category or amount. Filter by dates, card or cash, needs or wants, and see the total of what you found.</p>
+          <span class="tag">Search &amp; filters</span>
+        </article>
+        <article class="card c-amber">
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4"/><rect x="9.5" y="12" width="6" height="5" rx="1"/><path d="M10.5 12v-1.5a2 2 0 0 1 4 0V12"/></svg></div>
+          <h3>PDF or Excel, with a password</h3>
+          <p>Share a month, or any search, with family or your CA. Lock the PDF if you like. The file is made on your phone.</p>
+          <span class="tag">Export</span>
+        </article>
+        <article class="card c-teal">
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><rect x="3" y="5" width="18" height="12" rx="3"/><path d="M7 21h10"/><path class="pulse" d="M8 11h3"/></svg></div>
+          <h3>Today, on your home screen</h3>
+          <p>A widget with today's spend and one-tap Speak or Add. Shows nothing private when App lock is on.</p>
+          <span class="tag">Widget</span>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Numbers ===== -->
+  <section class="numbers" aria-label="RupeeNazar in numbers">
+    <div class="wrap">
+      <div class="stat"><div class="v num"><span class="count" data-to="0">0</span></div><p>Servers holding your payments. Your data lives on your phone.</p></div>
+      <div class="stat"><div class="v num"><span class="count" data-to="0">0</span></div><p>Ads, trackers or data sold. Ever.</p></div>
+      <div class="stat"><div class="v num"><span class="count" data-to="3">3</span></div><p>Languages for voice entry: English, Hindi and Telugu.</p></div>
+      <div class="stat"><div class="v num"><span class="count" data-to="2.9" data-dec="1">2.9</span><small>MB</small></div><p>Small download. Light on your phone's storage.</p></div>
+    </div>
+  </section>
+
+  <!-- ===== Who it's for ===== -->
+  <section class="who" aria-labelledby="who-h">
+    <div class="wrap">
+      <div class="sec-head rise"><div>
+        <p class="eyebrow">Who it's for</p>
+        <h2 id="who-h">For anyone who's asked "where did it all go?"</h2>
+      </div></div>
+      <div class="people">
+        <div class="person rise">
+          <div class="avatar" style="background:var(--amber-soft);color:var(--amber-ink)"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><path d="M5 9h11v5a5 5 0 0 1-5 5h-1a5 5 0 0 1-5-5V9Z"/><path d="M16 11h1.5a2.5 2.5 0 0 1 0 5H16"/><path d="M8 3v3M11 3v3"/></svg></div>
+          <h3>The office chai regular</h3>
+          <p>Four cups and a samosa a day, all by UPI. Sees the Chai-Pani total climb and decides on two.</p>
+          <p class="q">"₹323 this month on chai alone?"</p>
+        </div>
+        <div class="person rise">
+          <div class="avatar" style="background:var(--mint);color:var(--teal-ink)"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" aria-hidden="true"><path d="M4 11l8-7 8 7v9H4z"/><path d="M10 20v-5h4v5"/></svg></div>
+          <h3>The family budget keeper</h3>
+          <p>Rent, groceries, school fees and the maid, some by card, some in cash. One clear monthly picture.</p>
+          <p class="q">"Finally, needs and wants side by side."</p>
+        </div>
+        <div class="person rise">
+          <div class="avatar" style="background:var(--teal-soft);color:var(--teal-ink)"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><circle cx="8" cy="9" r="3"/><circle cx="16" cy="9" r="3"/><path d="M3 19c.8-3 2.8-4.5 5-4.5s4.2 1.5 5 4.5M11 19c.8-3 2.8-4.5 5-4.5s4.2 1.5 5 4.5"/></svg></div>
+          <h3>The flatmates</h3>
+          <p>Shared groceries, Wi-Fi and weekend dinners. Settle Up keeps track of who owes whom, without awkward reminders.</p>
+          <p class="q">"Only my share counts as my spend."</p>
+        </div>
+        <div class="person rise">
+          <div class="avatar" style="background:var(--mint);color:var(--teal-ink)"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4M10 13h5M10 17h5"/></svg></div>
+          <h3>The freelancer</h3>
+          <p>Card spends, client payments and a CA who wants the details. One tap sends a filtered month as Excel.</p>
+          <p class="q">"Credit card, October, sent to my CA."</p>
+        </div>
+      </div>
+      <p class="note-ex">These are examples of how people use RupeeNazar, not reviews.</p>
+    </div>
+  </section>
+
+  <!-- ===== Privacy ===== -->
+  <section class="priv" id="privacy" aria-labelledby="priv-h">
+    <div class="wrap">
+      <div class="rise">
+        <div class="shield" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 3l7 3v6c0 4.5-3 8-7 9-4-1-7-4.5-7-9V6l7-3Z"/><path d="M9 12l2 2 4-4" stroke-linecap="round"/></svg></div>
+        <p class="eyebrow">Privacy</p>
+        <h2 id="priv-h" style="margin-top:12px">Your money data never leaves your phone.</h2>
+        <p>RupeeNazar doesn't even ask for internet access. No servers holding your payments, no ads, no tracking, nothing sold. Backups happen only if you turn them on, locked with your own password and saved where you choose.</p>
+        <p><a href="privacy.html">Read the privacy policy</a> · <a href="terms.html">Terms of use</a></p>
+      </div>
+      <div class="perm rise" aria-label="What RupeeNazar asks for">
+        <div><div><b>Notification access</b><span>To notice payment messages from your bank and payment apps.</span></div><em class="yes">Asks</em></div>
+        <div><div><b>Notifications</b><span>Short alerts: a payment added, a bill due tomorrow.</span></div><em class="yes">Asks</em></div>
+        <div><div><b>Fingerprint or PIN</b><span>Only if you turn on App lock. Android checks it, not RupeeNazar.</span></div><em class="yes">Optional</em></div>
+        <div><div><b>Internet</b><span>Not needed. Nothing is uploaded.</span></div><em class="no">Never</em></div>
+        <div><div><b>Contacts, location, SMS inbox</b><span>Not needed, never asked.</span></div><em class="no">Never</em></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== FAQ ===== -->
+  <section class="faq-sec" id="faq" aria-labelledby="faq-h">
+    <div class="wrap">
+      <div class="rise">
+        <p class="eyebrow">Questions</p>
+        <h2 id="faq-h" style="margin-top:12px">Good to know</h2>
+      </div>
+      <div class="faq">
+        <details>
+          <summary>How does RupeeNazar find my payments?</summary>
+          <p>With Notification access on, it reads payment notifications and bank SMS alerts as they arrive, picks out the amount and name, and sorts them. Other notifications are ignored.</p>
+        </details>
+        <details>
+          <summary>Is my data uploaded anywhere?</summary>
+          <p>No. It stays on your phone. RupeeNazar has no internet permission. Backups go only where you choose, locked with your password.</p>
+        </details>
+        <details>
+          <summary>Which banks and apps work?</summary>
+          <p>Payment messages from major Indian banks, card issuers and UPI apps. Banks word their messages differently, so if one is missed or read wrongly, tell us and we'll teach the app.</p>
+        </details>
+        <details>
+          <summary>A payment is in the wrong category. What do I do?</summary>
+          <p>Tap it and pick the right one. RupeeNazar remembers your choice for that shop next time.</p>
+        </details>
+        <details>
+          <summary>How do I add cash spends?</summary>
+          <p>Tap + then Speak, and say several at once, like "chai 20, auto 60, kirana 340". Or type them in. ATM withdrawals show as cash in hand until you add what you spent it on.</p>
+        </details>
+        <details>
+          <summary>How do I move to a new phone?</summary>
+          <p>Save a backup on the old phone (or turn on the daily automatic backup). On the new phone, install RupeeNazar, open Backup and restore the file.</p>
+        </details>
+        <details>
+          <summary>Is it financial advice?</summary>
+          <p>No. RupeeNazar shows information about your own spending. For big money decisions, please talk to a qualified adviser or your CA.</p>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Closing ===== -->
+  <section class="closing" id="soon" aria-labelledby="soon-h">
+    <div class="wrap">
+      <div>
+        <h2 id="soon-h">Coming soon to Google Play.</h2>
+        <p>Want to know the day it's out, or try it early? Write to us and we'll let you know.</p>
+      </div>
+      <p class="mail"><span id="email">support@rupeenazar.com</span><button type="button" id="copy">Copy email</button></p>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <a class="brand" href="#top"><img src="logo.png" alt="">RupeeNazar</a>
+    <span>Made in Hyderabad, India, by the RupeeNazar team.</span>
+    <nav aria-label="Footer">
+      <a href="privacy.html">Privacy policy</a>
+      <a href="terms.html">Terms of use</a>
+      <a href="#faq">FAQ</a>
+    </nav>
+  </div>
+</footer>
+
+<script>
+(function () {
+  var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var fmt = new Intl.NumberFormat('en-IN', { maximumFractionDigits: 0 });
+  function rs(v) { return '₹' + fmt.format(Math.round(v)); }
+
+  // Rotating word in the headline
+  var words = ['chai', 'auto', 'biryani', 'kirana', 'petrol', 'chai'];
+  var rot = document.getElementById('rot'), wi = 0;
+  if (!reduce) setInterval(function () {
+    wi = (wi + 1) % (words.length - 1);
+    rot.innerHTML = '';
+    var s = document.createElement('span'); s.textContent = words[wi]; rot.appendChild(s);
+  }, 2200);
+
+  // Live phone: payments arrive one by one
+  var events = [
+    { n: 'Chai stall', c: 'Chai-Pani · UPI', a: 20, ic: 'C', bg: '#FFF4D8', fg: '#7A5300', chai: true },
+    { n: 'Auto', c: 'Travel · Cash, by voice', a: 60, ic: 'A', bg: '#FFF4D8', fg: '#7A5300' },
+    { n: 'Food delivery', c: 'Food & Dining · UPI', a: 289, ic: 'F', bg: '#E3F6F1', fg: '#0B7A6E' },
+    { n: 'Samosa stall', c: 'Chai-Pani · UPI', a: 30, ic: 'S', bg: '#FFF4D8', fg: '#7A5300', chai: true },
+    { n: 'Mobile recharge', c: 'Bills & Recharge · Credit card', a: 349, ic: 'R', bg: '#E6ECF4', fg: '#0B2545' },
+    { n: 'Metro card', c: 'Travel · UPI', a: 200, ic: 'M', bg: '#E6ECF4', fg: '#0B2545' }
+  ];
+  var feed = document.getElementById('feed'), spentEl = document.getElementById('spent'), chaiEl = document.getElementById('chai');
+  var visitsEl = document.getElementById('chai-visits'), meter = document.getElementById('meter'), limitEl = document.getElementById('limit');
+  var spent = 18240, chai = 323, visits = 6, limit = 31500, ei = 0;
+  function tween(el, from, to) {
+    var t0 = performance.now();
+    (function step(t) { var k = Math.min(1, (t - t0) / 700); el.textContent = rs(from + (to - from) * (1 - Math.pow(1 - k, 3))); if (k < 1) requestAnimationFrame(step); })(t0);
+  }
+  function arrive() {
+    var e = events[ei % events.length]; ei++;
+    var row = document.createElement('div'); row.className = 'item new';
+    var ic = document.createElement('div'); ic.className = 'ic'; ic.style.background = e.bg; ic.style.color = e.fg; ic.textContent = e.ic;
+    var mid = document.createElement('div'); mid.textContent = e.n; var sm = document.createElement('small'); sm.textContent = e.c; mid.appendChild(sm);
+    var am = document.createElement('div'); am.className = 'amt'; am.textContent = rs(e.a);
+    row.appendChild(ic); row.appendChild(mid); row.appendChild(am);
+    feed.insertBefore(row, feed.firstChild);
+    Array.prototype.forEach.call(feed.children, function (r, i) { if (i > 0) r.classList.remove('new'); });
+    while (feed.children.length > 3) feed.removeChild(feed.lastChild);
+    tween(spentEl, spent, spent + e.a); spent += e.a;
+    if (e.chai) { tween(chaiEl, chai, chai + e.a); chai += e.a; visits++; visitsEl.textContent = visits + ' visits this month'; }
+    var pct = Math.min(100, Math.round(spent / limit * 100));
+    meter.style.width = pct + '%'; limitEl.textContent = pct + '% of your ₹31,500 limit · 19 days left';
+    if (spent > 20500) { spent = 18240; chai = 323; visits = 6; }
+  }
+  meter.style.width = Math.round(spent / limit * 100) + '%';
+  if (!reduce) setInterval(arrive, 2600);
+
+  // Moving strip of payments being sorted
+  var strip = [['Rs.20 debited to CHAI STALL', '₹20 → Chai-Pani'], ['INR 649 spent on card XX29', '₹649 → Entertainment'], ['Rs.60 paid to auto, by voice', '₹60 → Travel'],
+    ['Rs.15,000 to Ramesh (rent)', '₹15,000 → Rent & Home'], ['Rs.342.00 to KIRANA STORE', '₹342 → Groceries'], ['ATM WDL Rs.5,000', '₹5,000 → Cash in hand'],
+    ['Refund Rs.120, food order', '₹120 → Refund'], ['Rs.499 mobile prepaid', '₹499 → Bills & Recharge']];
+  var track = document.getElementById('strip'), html = '';
+  var arrow = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
+  for (var r = 0; r < 2; r++) strip.forEach(function (p) {
+    html += '<span class="chip"' + (r ? ' aria-hidden="true"' : '') + '><s>' + p[0] + '</s>' + arrow + p[1] + '</span>';
+  });
+  track.innerHTML = html;
+
+  // Chai calculator
+  var amt = document.getElementById('amt'), times = document.getElementById('times');
+  var year = document.getElementById('year'), month = document.getElementById('month'), tea = document.getElementById('tea');
+  function update() {
+    var a = Math.max(0, parseFloat(amt.value) || 0), t = Math.max(0, parseFloat(times.value) || 0);
+    var y = a * t * 365;
+    year.textContent = rs(y);
+    month.textContent = 'About ' + rs(Math.round(y / 12 / 50) * 50) + ' a month';
+    // The cup fills with the yearly amount (full at ₹50,000)
+    var f = Math.max(.08, Math.min(1, y / 50000));
+    tea.style.transform = 'scaleY(' + f + ')';
+  }
+  amt.addEventListener('input', update); times.addEventListener('input', update);
+  document.getElementById('calc').addEventListener('submit', function (e) { e.preventDefault(); });
+  update();
+
+  // Scroll story: the step in view drives the phone
+  var steps = document.querySelectorAll('.step'), panels = document.querySelectorAll('.panel');
+  function show(i) {
+    steps.forEach(function (s) { s.classList.toggle('on', s.getAttribute('data-step') == i); });
+    panels.forEach(function (p) { p.classList.toggle('on', p.getAttribute('data-panel') == i); });
+  }
+  if ('IntersectionObserver' in window) {
+    var io = new IntersectionObserver(function (es) {
+      es.forEach(function (e) { if (e.isIntersecting) show(e.target.getAttribute('data-step')); });
+    }, { rootMargin: '-45% 0px -45% 0px' });
+    steps.forEach(function (s) { io.observe(s); });
+
+    // Gentle lift as sections arrive (they're visible before this runs)
+    var lift = new IntersectionObserver(function (es) {
+      es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('seen'); lift.unobserve(e.target); } });
+    }, { threshold: .12 });
+    if (!reduce) document.querySelectorAll('.rise').forEach(function (el) {
+      var r = el.getBoundingClientRect(); if (r.top > innerHeight) lift.observe(el);
+    });
+
+    // Count up the numbers band once
+    var counted = false;
+    var cio = new IntersectionObserver(function (es) {
+      if (counted || !es.some(function (e) { return e.isIntersecting; })) return;
+      counted = true;
+      document.querySelectorAll('.count').forEach(function (el) {
+        var to = parseFloat(el.getAttribute('data-to')), dec = +el.getAttribute('data-dec') || 0, t0 = performance.now();
+        if (reduce || to === 0) return;
+        (function step(t) { var k = Math.min(1, (t - t0) / 1100); el.textContent = (to * (1 - Math.pow(1 - k, 3))).toFixed(dec); if (k < 1) requestAnimationFrame(step); })(t0);
+      });
+    }, { threshold: .4 });
+    cio.observe(document.querySelector('.numbers'));
+  }
+
+  // Feature carousel arrows
+  var rail = document.getElementById('rail');
+  function by(d) { var card = rail.querySelector('.card'); rail.scrollBy({ left: d * (card.offsetWidth + 18), behavior: reduce ? 'auto' : 'smooth' }); }
+  document.getElementById('prev').addEventListener('click', function () { by(-1); });
+  document.getElementById('next').addEventListener('click', function () { by(1); });
+
+  // Copy email
+  var btn = document.getElementById('copy');
+  btn.addEventListener('click', function () {
+    var text = 'support@rupeenazar.com';
+    function done() { btn.textContent = 'Copied'; setTimeout(function () { btn.textContent = 'Copy email'; }, 1600); }
+    function select() { var r = document.createRange(); r.selectNodeContents(document.getElementById('email')); var s = getSelection(); s.removeAllRanges(); s.addRange(r); }
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, select); else select();
+  });
+})();
+</script>
+</body>
+</html>
